@@ -16,6 +16,7 @@ public class Main {
                 {13, 14, 15, 12}
         };
 
+        
         empty = new Coordinate(1, 2);
     }
 
