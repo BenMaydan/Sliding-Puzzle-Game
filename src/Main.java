@@ -1,6 +1,4 @@
-import java.util.LinkedList;
-import java.util.PriorityQueue;
-import java.util.Queue;
+import java.util.*;
 
 public class Main {
 
@@ -9,75 +7,47 @@ public class Main {
     private static int cols;
 
     public static void main(String[] args) {
-        int[][] puzzle = new int[4][4];
-        int num = 1;
-        for (int i = 0; i < puzzle.length; i++)
-            for (int ii = 0; ii < puzzle[i].length; ii++)
-                puzzle[i][ii] = num++;
-
-        puzzle = new int[][] {
-                {1 , 2 , 3 , 4 },
-                {5 , 10, 6 , 8 },
-                {0 , 9 , 7 , 11},
-                {13, 14, 15, 12}
-        };
-
-        empty = new Coordinate(1, 2);
-        rows = puzzle.length;
-        cols = puzzle.length;
+        Board b = new Board(4);
+        solveBFS(b);
     }
 
 
-    public boolean isSolved(int[][] puzzle) {
-        int prev = 0;
-        for (int i = 0; i < puzzle.length; i++) {
-            for (int ii = 0; ii < puzzle[i].length; ii++) {
-                if (puzzle[i][ii] < prev)
-                    return false;
-                prev = puzzle[i][ii];
+    public static void solveBFS(Board b) {
+        HashMap<String, Board> memo = new HashMap<>();
+        Queue<String> q = new LinkedList<>();
+
+        String id = b.getID();
+        memo.put(id, b);
+        q.add(id);   // enqueue
+
+        while (!memo.get(id).isSolved()) {
+            id = q.remove();  // dequeue
+
+            // check neighbors
+            for (int rr = -1; rr <= 1; rr++) {
+                for (int cc = -1; cc <= 1; cc++) {
+                    if (rr*cc != 0)
+                        continue;
+
+                    Board[] rand = memo.get(id).randomDirection();
+                    for (int r = 0; r < rand.length; r++) {
+                        Board rb = rand[r];
+                        if (rb != null && memo.get(rb.getID()) == null) {
+                            String rID = rb.getID();
+                            memo.put(rID, rb);
+                            q.add(rID);
+                            // rb.print();
+                        }
+                    }
+                }
             }
         }
-        return true;
+
+        memo.get(id).print();
     }
 
 
-    public void move(int[][] puzzle, Coordinate from) {
-        puzzle[empty.row][empty.col] = puzzle[from.row][from.col];
-        empty.row = from.row;
-        empty.col = from.col;
-        puzzle[from.row][from.col] = 0;
-    }
-
-
-    public void solveBFS(int[][] puzzle) {
-//        Queue<Coordinate> q = new LinkedList<>();
-//
-//        q.add(empty);   // enqueue
-//
-//        while (!isSolved(puzzle)) {
-//            Coordinate c = q.remove();  // dequeue
-//
-//            // check neighbors
-//            for (int rr = -1; rr <= 1; rr++) {
-//                for (int cc = -1; cc <= 1; cc++) {
-//                    if (rr*cc != 0)
-//                        continue;
-//
-//                    Coordinate n = new Coordinate(c.row+rr, c.col+cc);
-//                    if (n.row == -1 || n.row == rows || n.col == -1 || n.col == cols)
-//                        continue;
-//
-//                    if (m[n.row][n.col] == 0) {
-//                        m[n.row][n.col] = m[c.row][c.col] + 1;
-//                        q.add(n);
-//                    }
-//                }
-//            }
-//        }
-    }
-
-
-    public void solve(int[][] puzzle) {
+    public static void solve(int[][] puzzle) {
         // solve like a rubik's cube?
         // solve each row (last row is challenging)
 
@@ -92,5 +62,8 @@ public class Main {
         // for example, if you are solving the first row, you only need to keep track of the moves for
         //      the first and second row
         //      you don't even need to look at the third or fourth row
+        //
+        // this is assuming you have four of the numbers you need to solve that row somewhere in those two rows
+        // but they are not in the correct order
     }
 }
