@@ -1,3 +1,5 @@
+import java.util.ArrayList;
+
 public class Board {
     private String id;
     private int numMoves = 0;
@@ -63,21 +65,27 @@ public class Board {
     }
 
     public Board movec(Coordinate from) {
-        Board nboard = new Board(board);
+        int[][] b = new int[size][size];
+        for (int i = 0; i < b.length; i++) {
+            for (int ii = 0; ii < b[i].length; ii++) {
+                b[i][ii] = board[i][ii];
+            }
+        }
+        Board nboard = new Board(b);
         nboard.move(from);
         return nboard;
     }
 
-    public Board[] randomDirection() {
-        Board[] r = new Board[4];
+    public ArrayList<Board> randomDirection() {
+        ArrayList<Board> r = new ArrayList<>();
         if (empty.col > 0)
-            r[0] = movec(new Coordinate(empty.row, empty.col-1));
+            r.add(movec(new Coordinate(empty.row, empty.col-1)));
         if (empty.col < size-1)
-            r[1] = movec(new Coordinate(empty.row, empty.col+1));
+            r.add(movec(new Coordinate(empty.row, empty.col+1)));
         if (empty.row > 0)
-            r[2] = movec(new Coordinate(empty.row-1, empty.col));
+            r.add(movec(new Coordinate(empty.row-1, empty.col)));
         if (empty.row < size-1)
-            r[3] = movec(new Coordinate(empty.row+1, empty.col));
+            r.add(movec(new Coordinate(empty.row+1, empty.col)));
         return r;
     }
 

@@ -9,6 +9,7 @@ public class Main {
     public static void main(String[] args) {
         Board b = new Board(4);
         solveBFS(b);
+        // solveDFS(b);
     }
 
 
@@ -29,14 +30,48 @@ public class Main {
                     if (rr*cc != 0)
                         continue;
 
-                    Board[] rand = memo.get(id).randomDirection();
-                    for (int r = 0; r < rand.length; r++) {
-                        Board rb = rand[r];
-                        if (rb != null && memo.get(rb.getID()) == null) {
+                    ArrayList<Board> rand = memo.get(id).randomDirection();
+                    for (Board rb : rand) {
+                        if (memo.get(rb.getID()) == null) {
                             String rID = rb.getID();
                             memo.put(rID, rb);
                             q.add(rID);
-                            // rb.print();
+                            rb.print();
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        memo.get(id).print();
+    }
+
+    public static void solveDFS(Board b) {
+        HashMap<String, Board> memo = new HashMap<>();
+        Stack<String> q = new Stack<>();
+
+        String id = b.getID();
+        memo.put(id, b);
+        q.push(id);   // enqueue
+
+        while (!memo.get(id).isSolved()) {
+            id = q.pop();  // dequeue
+
+            // check neighbors
+            for (int rr = -1; rr <= 1; rr++) {
+                for (int cc = -1; cc <= 1; cc++) {
+                    if (rr*cc != 0)
+                        continue;
+
+                    ArrayList<Board> rand = memo.get(id).randomDirection();
+                    for (Board rb : rand) {
+                        if (memo.get(rb.getID()) == null) {
+                            String rID = rb.getID();
+                            memo.put(rID, rb);
+                            q.push(rID);
+                            rb.print();
+                            break;
                         }
                     }
                 }
