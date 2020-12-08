@@ -1,10 +1,11 @@
 import java.util.ArrayList;
+import java.util.Random;
 
 public class Board {
-    private String id;
+    private String id = "";
     private int numMoves = 0;
-    private int board[][];
-    private Coordinate empty;
+    public int board[][];
+    public Coordinate empty;
     private int size;
 
     public Board(int size) {
@@ -15,45 +16,40 @@ public class Board {
             for (int ii = 0; ii < board[i].length; ii++)
                 board[i][ii] = num++;
 
-        board = new int[][] {
-                {1 , 2 , 3 , 4 },
-                {5 , 10, 6 , 8 },
-                {0 , 9 , 7 , 11},
-                {13, 14, 15, 12}
-        };
-
-        empty = new Coordinate(1, 2);
+        board[size-1][size-1] = 0;
+        empty = new Coordinate(size-1, size-1);
+        update();
     }
 
     public Board(int[][] b) {
         this.size = b.length;
-        board = b;
-        for (int i = 0; i < b.length; i++) {
-            for (int ii = 0; ii < b[i].length; ii++) {
-                if (board[i][ii] == 0) {
-                    empty = new Coordinate(i, ii);
-                    return;
-                }
-            }
-        }
+        board = copy(b);
+        update();
     }
 
-    public int get(Coordinate c) {
-        return board[c.row][c.col];
+    public int[][] copy(int[][] f) {
+        int[][] c = new int[f.length][f.length];
+        for (int i = 0; i < f.length; i++)
+            for (int ii = 0; ii < f[i].length; ii++)
+                c[i][ii] = f[i][ii];
+        return c;
     }
 
     public String getID() {
         return id;
     }
 
-    private void updateID() {
-        String id = "";
+    public String update() {
+        StringBuilder newID = new StringBuilder();
         for (int i = 0; i < board.length; i++){
             for (int ii = 0; ii < board[i].length; ii++) {
-                id += board[i][ii];
+                if (board[i][ii] == 0)
+                    empty = new Coordinate(i, ii);
+                newID.append(board[i][ii]);
             }
         }
-        this.id = id;
+        id = newID.toString();
+        return id;
     }
 
     public void move(Coordinate from) {
@@ -61,22 +57,18 @@ public class Board {
         empty.row = from.row;
         empty.col = from.col;
         board[from.row][from.col] = 0;
-        updateID();
+        update();
     }
 
     public Board movec(Coordinate from) {
-        int[][] b = new int[size][size];
-        for (int i = 0; i < b.length; i++) {
-            for (int ii = 0; ii < b[i].length; ii++) {
-                b[i][ii] = board[i][ii];
-            }
-        }
-        Board nboard = new Board(b);
+        Board nboard = new Board(board);
         nboard.move(from);
+        nboard.setNumMoves(numMoves+1);
+        nboard.update();
         return nboard;
     }
 
-    public ArrayList<Board> randomDirection() {
+    public ArrayList<Board> availableDirections() {
         ArrayList<Board> r = new ArrayList<>();
         if (empty.col > 0)
             r.add(movec(new Coordinate(empty.row, empty.col-1)));
@@ -90,19 +82,49 @@ public class Board {
     }
 
     public boolean isSolved() {
-        int prev = 0;
+        int count = 1;
         for (int i = 0; i < board.length; i++) {
             for (int ii = 0; ii < board[i].length; ii++) {
-                if (board[i][ii] < prev)
+                if (board[i][ii] != count++ && !(i == board.length-1 && ii == board.length-1))
                     return false;
-                prev = board[i][ii];
             }
         }
         return true;
     }
 
-    public boolean equals(Board b) {
-        return id.equals(b.id);
+    public int getPercentageSolved() {
+        int percent = 0;
+        int num = 1;
+        for (int i = 0; i < board.length; i++) {
+            for (int ii = 0; ii < board[i].length; ii++) {
+                if (board[i][ii] == num)
+                    percent++;
+                num++;
+            }
+        }
+        return percent;
+    }
+
+    public int getCloseness() {
+        // measures closeness of each tile using manhattan distance
+        int closenessSum = 0;
+        for (int i = 0; i < board.length; i++) {
+            for (int ii = 0; ii < board[i].length; ii++) {
+                int n = board[i][ii];
+                int expectedCol = n%4 -1;
+                int expectedRow = (int)Math.ceil((double)n/4)-1;
+                closenessSum += Math.abs(ii-expectedCol) + Math.abs(i-expectedRow);
+            }
+        }
+        return closenessSum;
+    }
+
+    public void setNumMoves(int num) {
+        numMoves = num;
+    }
+
+    public int getNumMoves() {
+        return numMoves;
     }
 
     public void print() {

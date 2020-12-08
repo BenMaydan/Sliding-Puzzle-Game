@@ -2,18 +2,27 @@ import java.util.*;
 
 public class Main {
 
+    private static Board b;
     private static Coordinate empty;
-    private static int rows;
-    private static int cols;
 
     public static void main(String[] args) {
-        Board b = new Board(4);
-        solveBFS(b);
-        // solveDFS(b);
+        b = new Board(4);
+
+        int times = 50;
+        Random r = new Random();
+        for (int t = 0; t < times; t++) {
+            ArrayList<Board> ad = b.availableDirections();
+            b = ad.get(r.nextInt(ad.size()));
+        }
+        b.setNumMoves(0);
+
+        b.print();
+        Board solved = solveAS(b);
+        solved.print();
     }
 
 
-    public static void solveBFS(Board b) {
+    public static Board solveBS(Board b) {
         HashMap<String, Board> memo = new HashMap<>();
         Queue<String> q = new LinkedList<>();
 
@@ -21,33 +30,29 @@ public class Main {
         memo.put(id, b);
         q.add(id);   // enqueue
 
+        int counter = 0;
+
         while (!memo.get(id).isSolved()) {
             id = q.remove();  // dequeue
 
-            // check neighbors
-            for (int rr = -1; rr <= 1; rr++) {
-                for (int cc = -1; cc <= 1; cc++) {
-                    if (rr*cc != 0)
-                        continue;
+            counter++;
 
-                    ArrayList<Board> rand = memo.get(id).randomDirection();
-                    for (Board rb : rand) {
-                        if (memo.get(rb.getID()) == null) {
-                            String rID = rb.getID();
-                            memo.put(rID, rb);
-                            q.add(rID);
-                            rb.print();
-                            break;
-                        }
-                    }
+            ArrayList<Board> rand = memo.get(id).availableDirections();
+            for (Board rb : rand) {
+                if (memo.get(rb.getID()) == null) {
+                    String rID = rb.getID();
+                    memo.put(rID, rb);
+                    q.add(rID);
                 }
             }
         }
 
-        memo.get(id).print();
+        System.out.println("Boards looked at: " + counter);
+        System.out.println("Number of moves:  " + memo.get(id).getNumMoves());
+        return memo.get(id);
     }
 
-    public static void solveDFS(Board b) {
+    public static Board solveDS(Board b) {
         HashMap<String, Board> memo = new HashMap<>();
         Stack<String> q = new Stack<>();
 
@@ -55,30 +60,60 @@ public class Main {
         memo.put(id, b);
         q.push(id);   // enqueue
 
+        int counter = 0;
+
         while (!memo.get(id).isSolved()) {
             id = q.pop();  // dequeue
 
-            // check neighbors
-            for (int rr = -1; rr <= 1; rr++) {
-                for (int cc = -1; cc <= 1; cc++) {
-                    if (rr*cc != 0)
-                        continue;
+            counter++;
 
-                    ArrayList<Board> rand = memo.get(id).randomDirection();
-                    for (Board rb : rand) {
-                        if (memo.get(rb.getID()) == null) {
-                            String rID = rb.getID();
-                            memo.put(rID, rb);
-                            q.push(rID);
-                            rb.print();
-                            break;
-                        }
-                    }
+            // check neighbors
+            ArrayList<Board> rand = memo.get(id).availableDirections();
+            for (Board rb : rand) {
+                if (memo.get(rb.getID()) == null) {
+                    String rID = rb.getID();
+                    memo.put(rID, rb);
+                    q.push(rID);
+                    // rb.print();
                 }
             }
         }
 
-        memo.get(id).print();
+        System.out.println("Boards looked at: " + counter);
+        System.out.println("Number of moves:  " + memo.get(id).getNumMoves());
+        return memo.get(id);
+    }
+
+    public static Board solveAS(Board b) {
+        HashMap<String, Board> memo = new HashMap<>();
+        PriorityQueue<Board> q = new PriorityQueue<>(new HeuristicComparator());
+
+        Board cb = b;
+        String id = b.getID();
+        memo.put(id, cb);
+        q.add(cb);   // enqueue
+
+        int counter = 0;
+
+        while (!cb.isSolved()) {
+            cb = q.poll();  // dequeue
+            id = cb.getID();
+
+            counter++;
+
+            ArrayList<Board> rand = cb.availableDirections();
+            for (Board rb : rand) {
+                if (memo.get(rb.getID()) == null) {
+                    String rID = rb.getID();
+                    memo.put(rID, rb);
+                    q.add(rb);
+                }
+            }
+        }
+
+        System.out.println("Boards looked at: " + counter);
+        System.out.println("Number of moves:  " + memo.get(id).getNumMoves());
+        return memo.get(id);
     }
 
 
